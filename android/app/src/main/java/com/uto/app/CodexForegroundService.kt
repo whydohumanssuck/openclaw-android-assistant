@@ -1,4 +1,4 @@
-package com.codex.mobile
+package com.uto.app
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,7 +12,7 @@ import android.os.IBinder
 class CodexForegroundService : Service() {
 
     companion object {
-        private const val CHANNEL_ID = "codex_running"
+        private const val CHANNEL_ID = "uto_running"
         private const val NOTIFICATION_ID = 1
     }
 
@@ -32,10 +32,10 @@ class CodexForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "AnyClaw Running",
+                "Uto Running",
                 NotificationManager.IMPORTANCE_LOW,
             ).apply {
-                description = "Keeps Codex server running in the background"
+                description = "Keeps server running in the background"
                 setShowBadge(false)
             }
             val manager = getSystemService(NotificationManager::class.java)
@@ -60,7 +60,7 @@ class CodexForegroundService : Service() {
         }
 
         return builder
-            .setContentTitle("AnyClaw is running")
+            .setContentTitle("Uto is running")
             .setContentText("Server active in background")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentIntent(pendingIntent)

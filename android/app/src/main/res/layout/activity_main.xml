@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#020617">
+    android:background="#0f0f0f">
 
     <WebView
         android:id="@+id/webView"
@@ -16,24 +16,39 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32dp"
-        android:background="#020617">
+        android:padding="48dp"
+        android:background="#0f0f0f">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UTO"
+            android:textColor="#818cf8"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.15"
+            android:fontFamily="sans-serif-medium" />
 
         <ProgressBar
             android:id="@+id/progressBar"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:indeterminate="true"
-            android:indeterminateTint="#818cf8" />
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/progress_bar_drawable" />
 
         <TextView
             android:id="@+id/statusText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="20dp"
             android:text="@string/status_initializing"
             android:textColor="#94a3b8"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:gravity="center" />
 
         <TextView
@@ -45,6 +60,16 @@
             android:textSize="13sp"
             android:gravity="center"
             android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/percentText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="0%"
+            android:textColor="#475569"
+            android:textSize="13sp"
+            android:fontFamily="monospace" />
 
     </LinearLayout>
 

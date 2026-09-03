@@ -1,4 +1,4 @@
-package com.codex.mobile
+package com.uto.app
 
 import android.content.Context
 import android.util.Log
@@ -17,7 +17,7 @@ import java.net.URL
 class CodexServerManager(private val context: Context) {
 
     companion object {
-        private const val TAG = "CodexServerManager"
+        private const val TAG = "UtoServerManager"
         const val SERVER_PORT = 18923
         private const val PROXY_PORT = 18924
         private const val CODEX_VERSION = "0.104.0"
@@ -163,8 +163,8 @@ class CodexServerManager(private val context: Context) {
             if [ -f "${'$'}CODEX_JS" ]; then
                 rm -f "$prefix/bin/codex"
                 cat > "$prefix/bin/codex" << 'WEOF'
-#!/data/user/0/com.codex.mobile/files/usr/bin/sh
-exec /data/user/0/com.codex.mobile/files/usr/bin/node /data/user/0/com.codex.mobile/files/usr/lib/node_modules/@openai/codex/bin/codex.js "${'$'}@"
+#!/data/user/0/com.uto.app/files/usr/bin/sh
+exec /data/user/0/com.uto.app/files/usr/bin/node /data/user/0/com.uto.app/files/usr/lib/node_modules/@openai/codex/bin/codex.js "${'$'}@"
 WEOF
                 chmod 700 "$prefix/bin/codex"
             fi
@@ -173,8 +173,8 @@ WEOF
             if [ -f "${'$'}NPM_CLI" ]; then
                 rm -f "$prefix/bin/npm"
                 cat > "$prefix/bin/npm" << 'WEOF'
-#!/data/user/0/com.codex.mobile/files/usr/bin/sh
-exec /data/user/0/com.codex.mobile/files/usr/bin/node /data/user/0/com.codex.mobile/files/usr/lib/node_modules/npm/bin/npm-cli.js "${'$'}@"
+#!/data/user/0/com.uto.app/files/usr/bin/sh
+exec /data/user/0/com.uto.app/files/usr/bin/node /data/user/0/com.uto.app/files/usr/lib/node_modules/npm/bin/npm-cli.js "${'$'}@"
 WEOF
                 chmod 700 "$prefix/bin/npm"
             fi
@@ -523,7 +523,7 @@ H3
         val systemctlStub = File(prefix, "bin/systemctl")
         if (!systemctlStub.exists()) {
             systemctlStub.writeText(
-                "#!/data/user/0/com.codex.mobile/files/usr/bin/sh\n" +
+                "#!/data/user/0/com.uto.app/files/usr/bin/sh\n" +
                     "exit 0\n"
             )
             systemctlStub.setExecutable(true)
@@ -1006,8 +1006,8 @@ H3
         val wrapperCmd = """
             rm -f "$prefix/bin/codex"
             cat > "$prefix/bin/codex" << 'WEOF'
-#!/data/user/0/com.codex.mobile/files/usr/bin/sh
-exec /data/user/0/com.codex.mobile/files/usr/bin/node /data/user/0/com.codex.mobile/files/usr/lib/node_modules/@openai/codex/bin/codex.js "${'$'}@"
+#!/data/user/0/com.uto.app/files/usr/bin/sh
+exec /data/user/0/com.uto.app/files/usr/bin/node /data/user/0/com.uto.app/files/usr/lib/node_modules/@openai/codex/bin/codex.js "${'$'}@"
 WEOF
             chmod 700 "$prefix/bin/codex"
             echo "codex wrapper created"

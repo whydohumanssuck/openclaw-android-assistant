@@ -1,13 +1,348 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AnyClaw</title>
-    <script type="module" crossorigin src="/assets/index-BN3DrhGu.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DlIghrWV.css">
-  </head>
-  <body class="bg-slate-950">
-    <div id="app"></div>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Uto</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0f0f0f; --surface: #1a1a1a; --surface2: #242424;
+  --border: #333; --text: #e0e0e0; --text2: #888;
+  --accent: #818cf8; --accent-dim: #4f46e5;
+  --user-bg: #1e293b; --ai-bg: #1a1a2e;
+  --radius: 12px;
+}
+html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+body { display: flex; flex-direction: column; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 10; }
+.header h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.header h1 .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; }
+.header-btn { background: none; border: none; color: var(--text2); font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+.header-btn:hover { background: var(--surface2); color: var(--text); }
+
+/* Messages */
+.messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+.messages::-webkit-scrollbar { width: 4px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.msg { max-width: 88%; padding: 12px 16px; border-radius: var(--radius); line-height: 1.55; font-size: 14.5px; word-wrap: break-word; animation: fadeIn 0.2s ease; }
+.msg.user { align-self: flex-end; background: var(--accent-dim); color: #fff; border-bottom-right-radius: 4px; }
+.msg.assistant { align-self: flex-start; background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+.msg.assistant pre { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 8px 0; overflow-x: auto; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; white-space: pre-wrap; }
+.msg.assistant code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'SF Mono', 'Fira Code', monospace; }
+.msg.assistant pre code { background: none; padding: 0; }
+.msg.system { align-self: center; background: none; color: var(--text2); font-size: 13px; text-align: center; max-width: 100%; }
+
+.typing { display: flex; gap: 4px; padding: 12px 16px; }
+.typing span { width: 6px; height: 6px; background: var(--text2); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
+.typing span:nth-child(2) { animation-delay: 0.16s; }
+.typing span:nth-child(3) { animation-delay: 0.32s; }
+
+/* Input area */
+.input-area { padding: 12px 16px; background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0; }
+.input-row { display: flex; gap: 8px; align-items: flex-end; }
+.msg-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; color: var(--text); font-size: 15px; font-family: inherit; resize: none; outline: none; max-height: 120px; line-height: 1.4; }
+.msg-input:focus { border-color: var(--accent); }
+.msg-input::placeholder { color: var(--text2); }
+.send-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+.send-btn:disabled { background: var(--border); cursor: default; }
+.send-btn:not(:disabled):hover { background: var(--accent-dim); }
+
+/* Settings modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: calc(100% - 48px); max-width: 400px; }
+.modal h2 { font-size: 18px; margin-bottom: 16px; }
+.modal label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px; }
+.modal input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px; outline: none; font-family: monospace; }
+.modal input:focus { border-color: var(--accent); }
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+.modal-actions button { padding: 8px 20px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 14px; }
+.modal-actions button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Welcome screen */
+.welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 32px; color: var(--text2); }
+.welcome h2 { font-size: 22px; color: var(--text); margin-bottom: 8px; }
+.welcome p { font-size: 14px; margin-bottom: 24px; max-width: 280px; line-height: 1.5; }
+.suggestions { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+.suggestion { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 13px; text-align: left; cursor: pointer; transition: border-color 0.15s; }
+.suggestion:hover { border-color: var(--accent); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="dot"></span> Uto</h1>
+  <button class="header-btn" onclick="openSettings()" title="Settings">⚙</button>
+</div>
+
+<div class="messages" id="messages">
+  <div class="welcome" id="welcome">
+    <h2>Hey, I'm Uto</h2>
+    <p>Your AI coding assistant. Ask me anything about code.</p>
+    <div class="suggestions">
+      <div class="suggestion" onclick="sendSuggestion(this)">Explain this codebase to me</div>
+      <div class="suggestion" onclick="sendSuggestion(this)">Help me debug a function</div>
+      <div class="suggestion" onclick="sendSuggestion(this)">Write a Python script for...</div>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <textarea class="msg-input" id="msgInput" rows="1" placeholder="Message Uto..." onkeydown="handleKey(event)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>↑</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>API Key</h2>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Enter your OpenCode Zen API key to use Big Pickle (free).<br><a href="https://opencode.ai" target="_blank" style="color:var(--accent);">Get one here →</a></p>
+    <label for="apiKeyInput">API Key</label>
+    <input id="apiKeyInput" type="password" placeholder="zen_..." autocomplete="off">
+    <div class="modal-actions">
+      <button onclick="closeSettings()">Cancel</button>
+      <button class="primary" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://opencode.ai/zen/v1/chat/completions';
+const MODEL = 'big-pickle';
+const STORAGE_KEY = 'uto_api_key';
+const HISTORY_KEY = 'uto_chat_history';
+
+let apiKey = localStorage.getItem(STORAGE_KEY) || '';
+let messages = [];
+let isStreaming = false;
+
+// Auto-resize textarea
+const msgInput = document.getElementById('msgInput');
+msgInput.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  document.getElementById('sendBtn').disabled = this.value.trim().length === 0;
+});
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function sendSuggestion(el) {
+  msgInput.value = el.textContent;
+  msgInput.dispatchEvent(new Event('input'));
+  sendMessage();
+}
+
+function scrollToBottom() {
+  const m = document.getElementById('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+function addMessage(role, content) {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+
+  messages.push({ role, content });
+
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  if (role === 'assistant') {
+    div.innerHTML = formatMarkdown(content);
+  } else {
+    div.textContent = content;
+  }
+  document.getElementById('messages').appendChild(div);
+  scrollToBottom();
+  saveHistory();
+  return div;
+}
+
+function formatMarkdown(text) {
+  // Simple markdown: code blocks, inline code, bold
+  return text
+    .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function showTyping() {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.id = 'typingMsg';
+  div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  document.getElementById('messages').appendChild(div);
+  scrollToBottom();
+}
+
+function removeTyping() {
+  const t = document.getElementById('typingMsg');
+  if (t) t.remove();
+}
+
+function updateStreamMsg(text) {
+  let el = document.getElementById('streamMsg');
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'msg assistant';
+    el.id = 'streamMsg';
+    document.getElementById('messages').appendChild(el);
+  }
+  el.innerHTML = formatMarkdown(text);
+  scrollToBottom();
+}
+
+async function sendMessage() {
+  const text = msgInput.value.trim();
+  if (!text || isStreaming) return;
+
+  if (!apiKey) {
+    openSettings();
+    return;
+  }
+
+  addMessage('user', text);
+  msgInput.value = '';
+  msgInput.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+
+  isStreaming = true;
+  showTyping();
+
+  const apiMessages = messages.map(m => ({ role: m.role, content: m.content }));
+
+  try {
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: apiMessages,
+        stream: true,
+        max_tokens: 4096
+      })
+    });
+
+    removeTyping();
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      addMessage('assistant', '⚠️ API error (' + resp.status + '): ' + err.substring(0, 200));
+      isStreaming = false;
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            const delta = json.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullText += delta;
+              updateStreamMsg(fullText);
+            }
+          } catch {}
+        }
+      }
+    }
+
+    if (fullText) {
+      // Finalize the message
+      const el = document.getElementById('streamMsg');
+      if (el) el.id = '';
+      messages.push({ role: 'assistant', content: fullText });
+      saveHistory();
+    } else {
+      removeTyping();
+      addMessage('assistant', '⚠️ No response received.');
+    }
+
+  } catch (e) {
+    removeTyping();
+    addMessage('assistant', '⚠️ Connection error: ' + e.message);
+  }
+
+  isStreaming = false;
+}
+
+function openSettings() {
+  document.getElementById('apiKeyInput').value = apiKey;
+  document.getElementById('settingsModal').classList.add('active');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('active');
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (key) {
+    apiKey = key;
+    localStorage.setItem(STORAGE_KEY, key);
+  }
+  closeSettings();
+}
+
+function saveHistory() {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-50))); } catch {}
+}
+
+function loadHistory() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    if (saved.length > 0) {
+      document.getElementById('welcome')?.remove();
+      messages = saved;
+      for (const m of messages) {
+        const div = document.createElement('div');
+        div.className = 'msg ' + m.role;
+        if (m.role === 'assistant') div.innerHTML = formatMarkdown(m.content);
+        else div.textContent = m.content;
+        document.getElementById('messages').appendChild(div);
+      }
+      scrollToBottom();
+    }
+  } catch {}
+}
+
+// Initialize
+if (apiKey) {
+  document.getElementById('sendBtn').disabled = false;
+}
+loadHistory();
+</script>
+</body>
 </html>

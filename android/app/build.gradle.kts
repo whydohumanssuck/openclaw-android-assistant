@@ -4,11 +4,21 @@ plugins {
 }
 
 android {
-    namespace = "com.codex.mobile"
+    namespace = "com.uto.app"
     compileSdk = 35
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${rootProject.projectDir}/uto-release.keystore")
+            storePassword = "uto2026"
+            keyAlias = "uto"
+            keyPassword = "uto2026"
+        }
+    }
+
+
     defaultConfig {
-        applicationId = "com.codex.mobile"
+        applicationId = "com.uto.app"
         minSdk = 24
         // targetSdk 28 allows executing binaries from app data directory.
         // Android 10+ (targetSdk 29+) enforces W^X which blocks this via SELinux.
@@ -21,11 +31,16 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+    }
+
+    lint {
+        disable += "ExpiredTargetSdkVersion"
     }
 
     compileOptions {

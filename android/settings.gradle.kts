@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CodexMobile"
+rootProject.name = "Uto"
 include(":app")
