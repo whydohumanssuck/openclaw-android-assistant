@@ -69,9 +69,12 @@ class MainActivity : AppCompatActivity() {
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
-            allowFileAccess = false
+            allowFileAccess = true
+            allowFileAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
             setSupportZoom(false)
             cacheMode = WebSettings.LOAD_DEFAULT
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
         webView.webViewClient = WebViewClient()
     }
@@ -86,7 +89,6 @@ class MainActivity : AppCompatActivity() {
                 runSetup()
             } catch (e: Exception) {
                 Log.e(TAG, "Setup failed", e)
-                // Still launch the chat UI — it works without server
                 launchChatUi()
             }
         }.start()
@@ -107,7 +109,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun runSetup() {
-        // Step 1: Extract bootstrap (0-60%)
         if (!BootstrapInstaller.isBootstrapInstalled(this)) {
             updateProgress("Extracting environment…", 2, "This may take a moment on first run")
             BootstrapInstaller.install(this) { msg ->
@@ -118,16 +119,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
         updateProgress("Environment extracted", 60)
-
-        // At this point the chat UI is ready — show it!
-        // The rest is optional background setup
         launchChatUi()
 
-        // Background setup: proot, node, codex (non-blocking)
         Thread {
-            try {
-                backgroundSetup()
-            } catch (e: Exception) {
+            try { backgroundSetup() } catch (e: Exception) {
                 Log.w(TAG, "Background setup partial failure: ${e.message}")
             }
         }.start()
@@ -135,26 +130,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun backgroundSetup() {
         val serverManager = CodexServerManager(this)
-
-        // Install proot
-        if (!serverManager.isProotInstalled()) {
-            serverManager.installProot { }
-        }
-
-        // Install Node.js
-        if (!serverManager.isNodeInstalled()) {
-            serverManager.installNode { }
-        }
-
-        // Install Codex CLI
-        if (!serverManager.isCodexInstalled()) {
-            serverManager.installCodex { }
-        }
-
-        // Workspace
+        if (!serverManager.isProotInstalled()) serverManager.installProot { }
+        if (!serverManager.isNodeInstalled()) serverManager.installNode { }
+        if (!serverManager.isCodexInstalled()) serverManager.installCodex { }
         serverManager.ensureDefaultWorkspace()
         serverManager.ensureFullAccessConfig()
-
         Log.i(TAG, "Background setup complete")
     }
 
@@ -165,7 +145,13 @@ class MainActivity : AppCompatActivity() {
                 loadingOverlay.postDelayed({
                     loadingOverlay.visibility = View.GONE
                     webView.visibility = View.VISIBLE
-                    webView.loadUrl("file:///android_asset/web/index.html")
+                    webView.loadDataWithBaseURL(
+                        "file:///android_asset/web/",
+                        assets.open("web/index.html").bufferedReader().readText(),
+                        "text/html",
+                        "UTF-8",
+                        null
+                    )
                 }, 200)
             }
         }
